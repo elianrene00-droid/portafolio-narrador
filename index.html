@@ -49,14 +49,14 @@
   <div id="escena-puerta" style="display: none;">
     <button id="btn-abrir-puerta">Abrir puerta</button>
     <video id="video-puerta" playsinline muted preload="none" style="display: none;">
-      <source src="https://media.narradoraudiovisual.com/pruebapuerta.mp4" type="video/mp4" />
+      <source src="https://media.narradoraudiovisual.com/Audios/pruebapuerta.mp4" type="video/mp4" />
     </video>
   </div>
 
   <!-- 3. Escena del proyecto con el reel en bucle -->
   <div id="escena-reel" style="display: none;">
     <video id="video-reel" loop muted playsinline preload="none">
-      <source src="https://media.narradoraudiovisual.com/prueba10s.mp4" type="video/mp4" />
+      <source src="https://media.narradoraudiovisual.com/Audios/prueba10s.mp4" type="video/mp4" />
     </video>
     <div class="acciones">
       <button id="btn-saber-mas">Saber más del proyecto</button>
@@ -65,7 +65,7 @@
 
   <!-- Audio inicial -->
   <audio id="audio-intro" preload="none">
-    <source src="https://media.narradoraudiovisual.com/Intro%20Hector%20Lavoe.m4a" type="audio/mp4" />
+    <source src="https://media.narradoraudiovisual.com/Audios/Intro%20Hector%20Lavoe.m4a" type="audio/mp4" />
   </audio>
 
   <script>
@@ -84,6 +84,7 @@
 
     btnEntrar.addEventListener("click", () => {
       audioIntro.load();
+      videoPuerta.load();
       pantallaInicio.style.display = "none";
       escenaPuerta.style.display = "block";
     });
@@ -102,6 +103,7 @@
     videoPuerta.addEventListener("ended", () => {
       escenaPuerta.style.display = "none";
       escenaReel.style.display = "block";
+      videoReel.load();
       videoReel.currentTime = 0;
       videoReel.play().catch(() => {});
     });
