@@ -45,17 +45,19 @@
     <button id="btn-entrar">Entrar</button>
   </div>
 
-  <!-- 2. Escena previa con botón "Abrir puerta" -->
+  <!-- 2. Escena del video de la puerta y posterior botón "Abrir puerta" -->
   <div id="escena-puerta" style="display: none;">
-    <button id="btn-abrir-puerta">Abrir puerta</button>
-    <video id="video-puerta" playsinline muted preload="none" style="display: none;">
+    <video id="video-puerta" playsinline muted preload="auto">
       <source src="https://media.narradoraudiovisual.com/Audios/pruebapuerta.mp4" type="video/mp4" />
     </video>
+    <div id="contenedor-abrir-puerta" class="acciones" style="display: none;">
+      <button id="btn-abrir-puerta">Abrir puerta</button>
+    </div>
   </div>
 
-  <!-- 3. Escena del proyecto con el reel en bucle -->
+  <!-- 3. Escena del proyecto con el reel prueba10s en bucle -->
   <div id="escena-reel" style="display: none;">
-    <video id="video-reel" loop muted playsinline preload="none">
+    <video id="video-reel" loop muted playsinline preload="auto">
       <source src="https://media.narradoraudiovisual.com/Audios/prueba10s.mp4" type="video/mp4" />
     </video>
     <div class="acciones">
@@ -64,7 +66,7 @@
   </div>
 
   <!-- Audio inicial -->
-  <audio id="audio-intro" preload="none">
+  <audio id="audio-intro" preload="auto">
     <source src="https://media.narradoraudiovisual.com/Audios/Intro%20Hector%20Lavoe.m4a" type="audio/mp4" />
   </audio>
 
@@ -73,8 +75,9 @@
     const btnEntrar = document.getElementById("btn-entrar");
 
     const escenaPuerta = document.getElementById("escena-puerta");
-    const btnAbrirPuerta = document.getElementById("btn-abrir-puerta");
     const videoPuerta = document.getElementById("video-puerta");
+    const contenedorAbrirPuerta = document.getElementById("contenedor-abrir-puerta");
+    const btnAbrirPuerta = document.getElementById("btn-abrir-puerta");
 
     const escenaReel = document.getElementById("escena-reel");
     const videoReel = document.getElementById("video-reel");
@@ -83,15 +86,9 @@
     const audioIntro = document.getElementById("audio-intro");
 
     btnEntrar.addEventListener("click", () => {
-      audioIntro.load();
-      videoPuerta.load();
       pantallaInicio.style.display = "none";
       escenaPuerta.style.display = "block";
-    });
-
-    btnAbrirPuerta.addEventListener("click", () => {
-      btnAbrirPuerta.style.display = "none";
-      videoPuerta.style.display = "block";
+      contenedorAbrirPuerta.style.display = "none";
 
       videoPuerta.currentTime = 0;
       videoPuerta.play().catch(() => {});
@@ -101,9 +98,13 @@
     });
 
     videoPuerta.addEventListener("ended", () => {
+      contenedorAbrirPuerta.style.display = "block";
+    });
+
+    btnAbrirPuerta.addEventListener("click", () => {
       escenaPuerta.style.display = "none";
       escenaReel.style.display = "block";
-      videoReel.load();
+
       videoReel.currentTime = 0;
       videoReel.play().catch(() => {});
     });
