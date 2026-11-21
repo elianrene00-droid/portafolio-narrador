@@ -2,9 +2,56 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <title>Mi Portafolio</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Portafolio - Narrador Audiovisual</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #111;
+      color: #fff;
+      display: flex;
+      min-height: 100vh;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 16px;
+    }
+    button {
+      padding: 14px 24px;
+      font-size: 16px;
+      cursor: pointer;
+      border-radius: 8px;
+      border: none;
+      background: #fff;
+      color: #111;
+      font-weight: 600;
+    }
+    video {
+      max-width: 100%;
+      max-height: 75vh;
+      border-radius: 8px;
+      background: #000;
+    }
+    .acciones {
+      margin-top: 16px;
+    }
+  </style>
 </head>
 <body>
-  <h1>Hola, mi portafolio está en línea</h1>
-</body>
-</html>
+
+  <!-- 1. Pantalla inicial con botón "Entrar" -->
+  <div id="pantalla-inicio">
+    <button id="btn-entrar">Entrar</button>
+  </div>
+
+  <!-- 2. Escena previa con botón "Abrir puerta" -->
+  <div id="escena-puerta" style="display: none;">
+    <button id="btn-abrir-puerta">Abrir puerta</button>
+    <video id="video-puerta" playsinline muted preload="none" style="display: none;">
+      <source src="https://media.narradoraudiovisual.com/pruebapuerta.mp4" type="video/mp4" />
+    </video>
+  </div>
+
+  <!-- 3. Escena del proyecto con el reel en bucle -->
+  <div id="escena-reel" style="display: none
