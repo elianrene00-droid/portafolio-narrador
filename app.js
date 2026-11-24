@@ -22,10 +22,12 @@ const ASSETS = {
 };
 
 // 2 proyectos de prueba por sección (escalable añadiendo objetos al array)
+// docSlug sigue la nomenclatura del PDF en R2 (ej. doc-art-01 -> /art-dept/doc-art-01)
 const PORTFOLIO_DATA = {
   "art-dept": [
     {
       id: "art-01",
+      docSlug: "doc-art-01",
       title: "Proyecto Art Dept 01",
       orientation: "horizontal", // "horizontal" (16:9) | "vertical" (9:16)
       reelUrl: `${MEDIA_BASE}/videos/art-dept/reel-art-01-4x3.mp4`,
@@ -34,6 +36,7 @@ const PORTFOLIO_DATA = {
     },
     {
       id: "art-02",
+      docSlug: "doc-art-02",
       title: "Proyecto Art Dept 02",
       orientation: "vertical",
       reelUrl: `${MEDIA_BASE}/videos/art-dept/reel-art-02-4x3.mp4`,
@@ -44,6 +47,7 @@ const PORTFOLIO_DATA = {
   "filmmaker": [
     {
       id: "film-01",
+      docSlug: "doc-film-01",
       title: "Proyecto Filmmaker 01",
       orientation: "horizontal",
       reelUrl: `${MEDIA_BASE}/videos/filmmaker/reel-film-01-4x3.mp4`,
@@ -52,6 +56,7 @@ const PORTFOLIO_DATA = {
     },
     {
       id: "film-02",
+      docSlug: "doc-film-02",
       title: "Proyecto Filmmaker 02",
       orientation: "vertical",
       reelUrl: `${MEDIA_BASE}/videos/filmmaker/reel-film-02-4x3.mp4`,
@@ -69,7 +74,8 @@ const state = {
     "art-dept": 0,
     "filmmaker": 0
   },
-  isTransitioning: false
+  isTransitioning: false,
+  isDetailOpen: false
 };
 
 // Referencias DOM
@@ -114,9 +120,43 @@ function playStageVideo(src, { loop = false, onEnded = null } = {}) {
 }
 
 /* =========================================================
-   AUDIO GLOBAL (BOCINA) + OMITIR ESCENAS CON MEMORIA
+   RUTAS LIMPIAS EN URL (/art-dept, /art-dept/doc-art-01, etc.)
    ========================================================= */
-const SKIP_STORAGE_KEY = "portfolio_skip_scenes_v1";
+function getProjectDocSlug(project) {
+  return project.docSlug || project.id;
+}
+
+function buildCurrentRoutePath() {
+  if (state.currentSection === "inicio") {
+    return "/";
+  }
+
+  if (
+    (state.currentSection === "art-dept" || state.currentSection === "filmmaker") &&
+    state.isDetailOpen
+  ) {
+    const project = PORTFOLIO_DATA[state.currentSection][state.projectIndex[state.currentSection]];
+    return `/${state.currentSection}/${getProjectDocSlug(project)}`;
+  }
+
+  return `/${state.currentSection}`;
+}
+
+function syncUrlWithState(replace = false) {
+  const nextPath = buildCurrentRoutePath();
+  if (window.location.pathname === nextPath) return;
+
+  if (replace) {
+    window.history.replaceState({ fromApp: true }, "", nextPath);
+  } else {
+    window.history.pushState({ fromApp: true }, "", nextPath);
+  }
+}
+
+/* =========================================================
+   AUDIO GLOBAL (BOCINA) + OMITIR ESCENAS (SOLO SESIÓN ACTUAL)
+   ========================================================= */
+const LEGACY_SKIP_STORAGE_KEY = "portfolio_skip_scenes_v1";
 const AUDIO_UI_ASSETS = {
   on: `${MEDIA_BASE}/ui/btn-audio-on.png`,
   off: `${MEDIA_BASE}/ui/btn-audio-off.png`
@@ -128,8 +168,13 @@ const imgAudioIcon = document.getElementById("img-audio-icon");
 const fallbackAudioIcon = document.getElementById("fallback-audio-icon");
 const btnOmitirEscenas = document.getElementById("btn-omitir-escenas");
 
+// Siempre inician reseteados al cargar / refrescar / abrir nueva pestaña
 let isAudioMuted = false;
-let skipScenesEnabled = localStorage.getItem(SKIP_STORAGE_KEY) === "true";
+let skipScenesEnabled = false;
+
+try {
+  localStorage.removeItem(LEGACY_SKIP_STORAGE_KEY);
+} catch (_) {}
 
 function syncMacroHeaderClass() {
   const isMacroVisible = !externalTopUi.classList.contains("is-hidden");
@@ -156,7 +201,6 @@ function syncSkipButtonVisual() {
 
 function skipToDirectNavigation(targetSection = "art-dept") {
   skipScenesEnabled = true;
-  localStorage.setItem(SKIP_STORAGE_KEY, "true");
   syncSkipButtonVisual();
 
   // Detiene vídeos/audios de escenas narrativas intermedias
@@ -188,7 +232,8 @@ function stopAllAudio() {
 /* =========================================================
    FLUJO NARRATIVO INICIAL (INICIO -> LETRAS -> PUERTA -> CAÍDA -> HUB)
    ========================================================= */
-function goToInicio() {
+function goToInicio({ updateUrl = true } = {}) {
+  closeProjectDetail({ updateUrl: false });
   stopAllAudio();
   state.currentSection = "inicio";
   externalTopUi.classList.add("is-hidden");
@@ -196,6 +241,7 @@ function goToInicio() {
   showOnlyOverlay("inicio");
   playStageVideo(ASSETS.videos.loopInicio, { loop: true });
   syncMacroHeaderClass();
+  if (updateUrl) syncUrlWithState();
 }
 
 document.getElementById("btn-entrar").addEventListener("click", async () => {
@@ -310,11 +356,16 @@ function renderStoryBars(sectionKey) {
   }
 }
 
-function navigateToMacroSection(sectionKey, { withLanternIntro = false } = {}) {
+function navigateToMacroSection(
+  sectionKey,
+  { withLanternIntro = false, updateUrl = true } = {}
+) {
   if (sectionKey === "inicio") {
-    goToInicio();
+    goToInicio({ updateUrl });
     return;
   }
+
+  closeProjectDetail({ updateUrl: false });
 
   const shouldPlayLantern = withLanternIntro && !skipScenesEnabled;
 
@@ -340,6 +391,7 @@ function navigateToMacroSection(sectionKey, { withLanternIntro = false } = {}) {
       openGalleryScene(sectionKey);
     }
     syncMacroHeaderClass();
+    if (updateUrl) syncUrlWithState();
     return;
   }
 
@@ -355,6 +407,7 @@ function navigateToMacroSection(sectionKey, { withLanternIntro = false } = {}) {
     contactQuickActions.classList.remove("is-hidden");
   }
   syncMacroHeaderClass();
+  if (updateUrl) syncUrlWithState();
 }
 
 document.querySelectorAll(".macro-btn").forEach((btn) => {
@@ -441,11 +494,20 @@ const detailTitle = document.getElementById("detail-title");
 const detailYoutubeWrapper = document.getElementById("detail-youtube-wrapper");
 const detailPdfFrame = document.getElementById("detail-pdf-frame");
 
-document.getElementById("btn-saber-mas").addEventListener("click", () => {
-  const sec = state.currentSection;
-  if (sec !== "art-dept" && sec !== "filmmaker") return;
+function openProjectDetail(sectionKey, projectIndex, { updateUrl = true } = {}) {
+  if (sectionKey !== "art-dept" && sectionKey !== "filmmaker") return;
+  const list = PORTFOLIO_DATA[sectionKey];
+  const project = list[projectIndex] || list[0];
+  if (!project) return;
 
-  const project = PORTFOLIO_DATA[sec][state.projectIndex[sec]];
+  state.currentSection = sectionKey;
+  state.projectIndex[sectionKey] = projectIndex;
+  state.isDetailOpen = true;
+
+  updateMacroNavUI(sectionKey);
+  renderStoryBars(sectionKey);
+  syncMacroHeaderClass();
+
   detailTitle.textContent = project.title;
   detailPdfFrame.src = project.pdfUrl;
   detailYoutubeWrapper.innerHTML = `
@@ -459,13 +521,68 @@ document.getElementById("btn-saber-mas").addEventListener("click", () => {
 
   detailView.classList.remove("is-hidden");
   detailView.setAttribute("aria-hidden", "false");
-});
+  if (updateUrl) syncUrlWithState();
+}
 
-document.getElementById("btn-detail-back").addEventListener("click", () => {
-  // Descarga el iframe de YouTube al cerrar para liberar recursos
+function closeProjectDetail({ updateUrl = true } = {}) {
+  if (!state.isDetailOpen && detailView.classList.contains("is-hidden")) return;
+  state.isDetailOpen = false;
   detailYoutubeWrapper.innerHTML = "";
   detailView.classList.add("is-hidden");
   detailView.setAttribute("aria-hidden", "true");
+  if (updateUrl) syncUrlWithState();
+}
+
+document.getElementById("btn-saber-mas").addEventListener("click", () => {
+  const sec = state.currentSection;
+  if (sec !== "art-dept" && sec !== "filmmaker") return;
+  openProjectDetail(sec, state.projectIndex[sec], { updateUrl: true });
+});
+
+document.getElementById("btn-detail-back").addEventListener("click", () => {
+  closeProjectDetail({ updateUrl: true });
+});
+
+/* =========================================================
+   SINCRONIZACIÓN INICIAL Y BOTÓN ATRÁS/ADELANTE DEL NAVEGADOR
+   ========================================================= */
+function applyRoutePathname(pathname) {
+  const cleanPath = (pathname || "/").replace(/\/+$/, "") || "/";
+  const parts = cleanPath.split("/").filter(Boolean);
+
+  if (parts.length === 0) {
+    goToInicio({ updateUrl: false });
+    return;
+  }
+
+  const first = parts[0];
+  if (first === "art-dept" || first === "filmmaker") {
+    const second = parts[1];
+    if (second) {
+      const items = PORTFOLIO_DATA[first];
+      const foundIdx = items.findIndex(
+        (item) => getProjectDocSlug(item) === second || item.id === second
+      );
+      if (foundIdx !== -1) {
+        navigateToMacroSection(first, { withLanternIntro: false, updateUrl: false });
+        openProjectDetail(first, foundIdx, { updateUrl: false });
+        return;
+      }
+    }
+    navigateToMacroSection(first, { withLanternIntro: false, updateUrl: false });
+    return;
+  }
+
+  if (first === "ingenieria" || first === "contacto") {
+    navigateToMacroSection(first, { withLanternIntro: false, updateUrl: false });
+    return;
+  }
+
+  goToInicio({ updateUrl: false });
+}
+
+window.addEventListener("popstate", () => {
+  applyRoutePathname(window.location.pathname);
 });
 
 /* =========================================================
@@ -573,5 +690,5 @@ commentForm.addEventListener("submit", async (e) => {
   }
 });
 
-// Arranque inicial
-goToInicio();
+// Arranque inicial respetando la URL si se entra directo o se recarga
+applyRoutePathname(window.location.pathname);
