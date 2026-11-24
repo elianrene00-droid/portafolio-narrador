@@ -572,3 +572,62 @@ body {
   min-height: 68dvh;
   border: none;
 }
+/* =========================================================
+   CONTROLES SUTILES ARRIBA A LA DERECHA (AUDIO + OMITIR ESCENAS)
+   ========================================================= */
+.global-utility-controls {
+  position: fixed;
+  top: max(10px, env(safe-area-inset-top));
+  right: 12px;
+  z-index: 45;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+/* Si la cabecera macro está visible, bajamos un poco para no pisarla */
+.app-shell.has-macro-header .global-utility-controls {
+  top: calc(max(10px, env(safe-area-inset-top)) + 44px);
+}
+
+.utility-btn {
+  background: rgba(14, 14, 14, 0.58);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  backdrop-filter: blur(6px);
+  border-radius: 999px;
+  padding: 5px 10px;
+  cursor: pointer;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  color: rgba(244, 241, 234, 0.85);
+  transition: opacity 0.2s ease, transform 0.15s ease, border-color 0.2s ease;
+}
+
+.utility-btn:active {
+  transform: scale(0.95);
+}
+
+.utility-btn img {
+  display: block;
+  height: 18px;
+  width: auto;
+  pointer-events: none;
+}
+
+.utility-icon-btn {
+  padding: 6px;
+}
+
+.utility-fallback {
+  display: none;
+  font-size: 0.72rem;
+  font-weight: 500;
+  letter-spacing: 0.02em;
+  line-height: 1;
+}
+
+.utility-btn.is-skip-active {
+  border-color: var(--gold-accent);
+  color: var(--gold-accent);
+}
