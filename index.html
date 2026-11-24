@@ -2,116 +2,171 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Portafolio - Narrador Audiovisual</title>
-  <style>
-    body {
-      margin: 0;
-      font-family: system-ui, -apple-system, sans-serif;
-      background: #111;
-      color: #fff;
-      display: flex;
-      min-height: 100vh;
-      align-items: center;
-      justify-content: center;
-      text-align: center;
-      padding: 16px;
-    }
-    button {
-      padding: 14px 24px;
-      font-size: 16px;
-      cursor: pointer;
-      border-radius: 8px;
-      border: none;
-      background: #fff;
-      color: #111;
-      font-weight: 600;
-    }
-    video {
-      max-width: 100%;
-      max-height: 75vh;
-      border-radius: 8px;
-      background: #000;
-    }
-    .acciones {
-      margin-top: 16px;
-    }
-  </style>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover" />
+  <title>Elian René — Narrador Audiovisual</title>
+  <link rel="stylesheet" href="styles.css" />
 </head>
 <body>
-
-  <!-- 1. Pantalla inicial con botón "Entrar" -->
-  <div id="pantalla-inicio">
-    <button id="btn-entrar">Entrar</button>
-  </div>
-
-  <!-- 2. Escena del video de la puerta y posterior botón "Abrir puerta" -->
-  <div id="escena-puerta" style="display: none;">
-    <video id="video-puerta" playsinline muted preload="auto">
-      <source src="https://media.narradoraudiovisual.com/Audios/pruebapuerta.mp4" type="video/mp4" />
-    </video>
-    <div id="contenedor-abrir-puerta" class="acciones" style="display: none;">
-      <button id="btn-abrir-puerta">Abrir puerta</button>
+  <main id="app" class="app-shell" data-scene="inicio">
+    
+    <!-- CAPA 1: ESCENARIO DE VÍDEOS 4:3 A PANTALLA COMPLETA (100dvh) -->
+    <div id="stage" class="stage">
+      <!-- Vídeo principal de escenas / transiciones -->
+      <video id="scene-video" class="stage-video" playsinline preload="auto" muted></video>
+      <!-- Vídeo secundario pre-cargado para cortes instantáneos sin parpadeo -->
+      <video id="buffer-video" class="stage-video is-hidden" playsinline preload="auto" muted></video>
     </div>
-  </div>
 
-  <!-- 3. Escena del proyecto con el reel prueba10s en bucle -->
-  <div id="escena-reel" style="display: none;">
-    <video id="video-reel" loop muted playsinline preload="auto">
-      <source src="https://media.narradoraudiovisual.com/Audios/prueba10s.mp4" type="video/mp4" />
-    </video>
-    <div class="acciones">
-      <button id="btn-saber-mas">Saber más del proyecto</button>
-    </div>
-  </div>
+    <!-- CAPA 2: ELEMENTOS INTERACTIVOS DE LA ESCENA (DENTRO DE LA NARRATIVA) -->
+    <section id="scene-layer" class="scene-layer">
+      
+      <!-- Pantalla 0: Botón Entrar -->
+      <div id="ui-inicio" class="scene-overlay is-active">
+        <button id="btn-entrar" class="graphic-btn btn-center" aria-label="Entrar">
+          <img src="https://media.narradoraudiovisual.com/ui/btn-entrar.png" alt="Entrar" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-flex';" />
+          <span class="fallback-btn">Entrar</span>
+        </button>
+      </div>
 
-  <!-- Audio inicial -->
-  <audio id="audio-intro" preload="auto">
-    <source src="https://media.narradoraudiovisual.com/Audios/Intro%20Hector%20Lavoe.m4a" type="audio/mp4" />
-  </audio>
+      <!-- Escena 1: Botón Abrir Puerta -->
+      <div id="ui-puerta" class="scene-overlay">
+        <button id="btn-abrir-puerta" class="graphic-btn btn-door" aria-label="Abrir puerta">
+          <img src="https://media.narradoraudiovisual.com/ui/btn-abrir-puerta.png" alt="Abrir puerta" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-flex';" />
+          <span class="fallback-btn">Abrir puerta</span>
+        </button>
+      </div>
 
-  <script>
-    const pantallaInicio = document.getElementById("pantalla-inicio");
-    const btnEntrar = document.getElementById("btn-entrar");
+      <!-- Escena 2: Hub de 4 puertas / secciones tras la caída -->
+      <div id="ui-hub" class="scene-overlay hub-grid">
+        <button class="graphic-btn hub-top" data-target-section="filmmaker" aria-label="Filmmaker">
+          <img src="https://media.narradoraudiovisual.com/ui/btn-sec-filmmaker.png" alt="Filmmaker" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-flex';" />
+          <span class="fallback-btn">Filmmaker</span>
+        </button>
 
-    const escenaPuerta = document.getElementById("escena-puerta");
-    const videoPuerta = document.getElementById("video-puerta");
-    const contenedorAbrirPuerta = document.getElementById("contenedor-abrir-puerta");
-    const btnAbrirPuerta = document.getElementById("btn-abrir-puerta");
+        <button class="graphic-btn hub-left" data-target-section="art-dept" aria-label="Art Department">
+          <img src="https://media.narradoraudiovisual.com/ui/btn-sec-art-dept.png" alt="Art Department" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-flex';" />
+          <span class="fallback-btn">Art Department</span>
+        </button>
 
-    const escenaReel = document.getElementById("escena-reel");
-    const videoReel = document.getElementById("video-reel");
-    const btnSaberMas = document.getElementById("btn-saber-mas");
+        <button class="graphic-btn hub-right" data-target-section="ingenieria" aria-label="Ingeniería">
+          <img src="https://media.narradoraudiovisual.com/ui/btn-sec-ingenieria.png" alt="Ingeniería" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-flex';" />
+          <span class="fallback-btn">Ingeniería</span>
+        </button>
 
-    const audioIntro = document.getElementById("audio-intro");
+        <button class="graphic-btn hub-bottom" data-target-section="contacto" aria-label="Contact & Me">
+          <img src="https://media.narradoraudiovisual.com/ui/btn-sec-contacto.png" alt="Contact & Me" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-flex';" />
+          <span class="fallback-btn">Contact &amp; Me</span>
+        </button>
+      </div>
 
-    btnEntrar.addEventListener("click", () => {
-      pantallaInicio.style.display = "none";
-      escenaPuerta.style.display = "block";
-      contenedorAbrirPuerta.style.display = "none";
+      <!-- Escena Museo / Cuadro iluminado (Art Department y Filmmaker) -->
+      <div id="ui-gallery" class="scene-overlay gallery-scene">
+        <!-- Haz circular de luz (si el vídeo de fondo ya lo trae, este refuerza el viñeteado suave) -->
+        <div class="spotlight-vignette"></div>
 
-      videoPuerta.currentTime = 0;
-      videoPuerta.play().catch(() => {});
+        <div class="gallery-illuminated-group">
+          <!-- Carteles superiores dentro de la luz -->
+          <div class="gallery-signs-top">
+            <button id="btn-ir-atras" class="graphic-btn sign-btn" aria-label="Ir atrás">
+              <img src="https://media.narradoraudiovisual.com/ui/btn-ir-atras.png" alt="Ir atrás" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-flex';" />
+              <span class="fallback-sign">🚪 Ir atrás</span>
+            </button>
 
-      audioIntro.currentTime = 0;
-      audioIntro.play().catch(() => {});
-    });
+            <button id="btn-siguiente-proyecto" class="graphic-btn sign-btn" aria-label="Siguiente proyecto">
+              <img src="https://media.narradoraudiovisual.com/ui/btn-siguiente-proyecto.png" alt="Siguiente proyecto" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-flex';" />
+              <span class="fallback-sign">Siguiente proyecto →</span>
+            </button>
+          </div>
 
-    videoPuerta.addEventListener("ended", () => {
-      contenedorAbrirPuerta.style.display = "block";
-    });
+          <!-- Marco del cuadro (cambia automáticamente entre 16:9 y 9:16 según el proyecto) -->
+          <div id="painting-frame" class="painting-frame is-horizontal">
+            <video id="project-reel" class="project-reel" loop muted playsinline autoplay preload="auto"></video>
+            <div class="canvas-texture"></div>
+          </div>
 
-    btnAbrirPuerta.addEventListener("click", () => {
-      escenaPuerta.style.display = "none";
-      escenaReel.style.display = "block";
+          <!-- Título fuera del vídeo + Cartel Saber Más debajo -->
+          <div class="gallery-signs-bottom">
+            <div id="project-title-plaque" class="title-plaque">Título del Proyecto</div>
 
-      videoReel.currentTime = 0;
-      videoReel.play().catch(() => {});
-    });
+            <button id="btn-saber-mas" class="graphic-btn sign-btn" aria-label="Saber más">
+              <img src="https://media.narradoraudiovisual.com/ui/btn-saber-mas.png" alt="Saber más" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-flex';" />
+              <span class="fallback-sign">Saber más ↓</span>
+            </button>
+          </div>
+        </div>
+      </div>
 
-    btnSaberMas.addEventListener("click", () => {
-      alert("Aquí irá la información detallada de tu proyecto.");
-    });
-  </script>
+      <!-- Vista de Lectura PDF (Ingeniería y Contact & Me) -->
+      <div id="ui-pdf-section" class="scene-overlay pdf-section-view">
+        <div class="pdf-container">
+          <iframe id="section-pdf-frame" title="Documento de sección"></iframe>
+        </div>
+        <!-- Acciones rápidas exclusivas para Contact & Me -->
+        <div id="contact-quick-actions" class="contact-actions is-hidden">
+          <a href="tel:+34600000000" class="contact-pill">Llamar</a>
+          <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" class="contact-pill">Instagram</a>
+          <a href="https://linkedin.com" target="_blank" rel="noopener noreferrer" class="contact-pill">LinkedIn</a>
+          <a href="mailto:elianrene00@gmail.com" class="contact-pill">Correo directo</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- CAPA 3: UI EXTERNA (FUERA DE LA ESCENA, ESTILO HISTORIAS DE INSTAGRAM) -->
+    <header id="external-top-ui" class="external-top-ui is-hidden">
+      <nav class="macro-nav" aria-label="Secciones principales">
+        <button class="macro-btn" data-macro="inicio">Inicio</button>
+        <button class="macro-btn" data-macro="art-dept">Art Department</button>
+        <button class="macro-btn" data-macro="filmmaker">Filmmaker</button>
+        <button class="macro-btn" data-macro="ingenieria">Ingeniería</button>
+        <button class="macro-btn" data-macro="contacto">Contact &amp; Me</button>
+      </nav>
+      <div id="story-bars" class="story-bars" aria-hidden="true"></div>
+    </header>
+
+    <footer id="external-bottom-ui" class="external-bottom-ui is-hidden">
+      <form id="comment-form" class="comment-form" autocomplete="off">
+        <input
+          id="comment-input"
+          type="text"
+          maxlength="280"
+          placeholder="Enviar mensaje..."
+          aria-label="Escribe un comentario sobre este proyecto"
+          required
+        />
+        <button type="submit" class="send-comment-btn" aria-label="Enviar comentario">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="22" y1="2" x2="11" y2="13"></line>
+            <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+          </svg>
+        </button>
+      </form>
+    </footer>
+
+    <!-- Notificación sutil tipo historia de Instagram -->
+    <div id="ig-toast" class="ig-toast" role="status" aria-live="polite">Comentario enviado</div>
+
+    <!-- CAPA 4: OPCIÓN A — VISTA DEDICADA "SABER MÁS" (PDF + YOUTUBE + IR ATRÁS) -->
+    <section id="project-detail-view" class="detail-view is-hidden" aria-hidden="true">
+      <div class="detail-header">
+        <button id="btn-detail-back" class="detail-back-btn">← Ir atrás</button>
+        <h2 id="detail-title" class="detail-title">Proyecto</h2>
+      </div>
+      <div class="detail-scroll">
+        <div id="detail-youtube-wrapper" class="youtube-wrapper"></div>
+        <div class="detail-pdf-wrapper">
+          <iframe id="detail-pdf-frame" title="Ficha del proyecto"></iframe>
+        </div>
+      </div>
+    </section>
+
+    <!-- CAPA DE AUDIO -->
+    <audio id="audio-intro" src="https://media.narradoraudiovisual.com/audios/musica/audio-intro.m4a" preload="auto"></audio>
+    <audio id="sfx-puerta" src="https://media.narradoraudiovisual.com/audios/sfx/sfx-puerta-abrir.m4a" preload="auto"></audio>
+    <audio id="sfx-viento" src="https://media.narradoraudiovisual.com/audios/sfx/sfx-viento-fuerte.m4a" preload="auto"></audio>
+    <audio id="sfx-linterna" src="https://media.narradoraudiovisual.com/audios/sfx/sfx-linterna.m4a" preload="auto"></audio>
+
+  </main>
+
+  <script src="app.js"></script>
 </body>
 </html>
