@@ -132,24 +132,57 @@ function goToInicio() {
   playStageVideo(ASSETS.videos.loopInicio, { loop: true });
 }
 
-document.getElementById("btn-entrar").addEventListener("click", () => {
+document.getElementById("btn-entrar").addEventListener("click", async () => {
   showOnlyOverlay(null);
   stopAllAudio();
 
-  // Desbloquea sonido e inicia vídeo de letras + música de entrada
-  audioIntro.play().catch(() => {});
-  playStageVideo(ASSETS.videos.introLetras, {
-    loop: false,
-    onEnded: () => {
-      // Al terminar las letras, arranca automáticamente la Escena 1
-      playStageVideo(ASSETS.videos.escenaPuerta, {
-        loop: false,
-        onEnded: () => {
-          showOnlyOverlay("puerta");
-        }
-      });
-    }
-  });
+  // Preparamos el vídeo sin arrancarlo aún
+  sceneVideo.onended = null;
+  sceneVideo.loop = false;
+  sceneVideo.src = ASSETS.videos.introLetras;
+  sceneVideo.currentTime = 0;
+  sceneVideo.load();
+
+  audioIntro.currentTime = 0;
+  audioIntro.load();
+
+  const waitForEvent = (mediaEl, events, timeoutMs = 4000) =>
+    new Promise((resolve) => {
+      let done = false;
+      const finish = () => {
+        if (done) return;
+        done = true;
+        events.forEach((ev) => mediaEl.removeEventListener(ev, onReady));
+        clearTimeout(timer);
+        resolve();
+      };
+      const onReady = () => finish();
+      const timer = setTimeout(finish, timeoutMs);
+
+      events.forEach((ev) => mediaEl.addEventListener(ev, onReady, { once: true }));
+      if (mediaEl.readyState >= 3) finish();
+    });
+
+  // Esperamos a que vídeo y audio tengan buffer listo antes de reproducir ambos
+  await Promise.all([
+    waitForEvent(sceneVideo, ["canplay", "loadeddata"]),
+    waitForEvent(audioIntro, ["canplaythrough", "canplay"])
+  ]);
+
+  // Arrancamos ambos al mismo tiempo
+  await Promise.all([
+    sceneVideo.play().catch(() => {}),
+    audioIntro.play().catch(() => {})
+  ]);
+
+  sceneVideo.onended = () => {
+    playStageVideo(ASSETS.videos.escenaPuerta, {
+      loop: false,
+      onEnded: () => {
+        showOnlyOverlay("puerta");
+      }
+    });
+  };
 });
 
 document.getElementById("btn-abrir-puerta").addEventListener("click", () => {
