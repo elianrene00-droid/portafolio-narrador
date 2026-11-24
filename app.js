@@ -112,6 +112,7 @@ function playStageVideo(src, { loop = false, onEnded = null } = {}) {
     sceneVideo.onended = onEnded;
   }
 }
+
 /* =========================================================
    AUDIO GLOBAL (BOCINA) + OMITIR ESCENAS CON MEMORIA
    ========================================================= */
@@ -194,9 +195,15 @@ function goToInicio() {
   externalBottomUi.classList.add("is-hidden");
   showOnlyOverlay("inicio");
   playStageVideo(ASSETS.videos.loopInicio, { loop: true });
+  syncMacroHeaderClass();
 }
 
 document.getElementById("btn-entrar").addEventListener("click", async () => {
+  if (skipScenesEnabled) {
+    skipToDirectNavigation("art-dept");
+    return;
+  }
+
   showOnlyOverlay(null);
   stopAllAudio();
 
@@ -272,7 +279,7 @@ document.getElementById("btn-abrir-puerta").addEventListener("click", () => {
 document.querySelectorAll("[data-target-section]").forEach((btn) => {
   btn.addEventListener("click", () => {
     const target = btn.getAttribute("data-target-section");
-    navigateToMacroSection(target, { withLanternIntro: true });
+    navigateToMacroSection(target, { withLanternIntro: !skipScenesEnabled });
   });
 });
 
@@ -309,6 +316,8 @@ function navigateToMacroSection(sectionKey, { withLanternIntro = false } = {}) {
     return;
   }
 
+  const shouldPlayLantern = withLanternIntro && !skipScenesEnabled;
+
   state.currentSection = sectionKey;
   updateMacroNavUI(sectionKey);
   renderStoryBars(sectionKey);
@@ -316,7 +325,7 @@ function navigateToMacroSection(sectionKey, { withLanternIntro = false } = {}) {
   if (sectionKey === "art-dept" || sectionKey === "filmmaker") {
     externalBottomUi.classList.remove("is-hidden");
 
-    if (withLanternIntro) {
+    if (shouldPlayLantern) {
       showOnlyOverlay(null);
       sfxLinterna.currentTime = 0;
       sfxLinterna.play().catch(() => {});
@@ -330,6 +339,7 @@ function navigateToMacroSection(sectionKey, { withLanternIntro = false } = {}) {
     } else {
       openGalleryScene(sectionKey);
     }
+    syncMacroHeaderClass();
     return;
   }
 
@@ -344,6 +354,7 @@ function navigateToMacroSection(sectionKey, { withLanternIntro = false } = {}) {
     sectionPdfFrame.src = ASSETS.docs.contacto;
     contactQuickActions.classList.remove("is-hidden");
   }
+  syncMacroHeaderClass();
 }
 
 document.querySelectorAll(".macro-btn").forEach((btn) => {
@@ -351,7 +362,8 @@ document.querySelectorAll(".macro-btn").forEach((btn) => {
     const target = btn.dataset.macro;
     const needsLantern =
       (target === "art-dept" || target === "filmmaker") &&
-      state.currentSection !== target;
+      state.currentSection !== target &&
+      !skipScenesEnabled;
     navigateToMacroSection(target, { withLanternIntro: needsLantern });
   });
 });
@@ -418,6 +430,7 @@ document.getElementById("btn-ir-atras").addEventListener("click", () => {
   showOnlyOverlay("hub");
   playStageVideo(ASSETS.videos.escenaPrecipicio, { loop: false });
   sceneVideo.pause();
+  syncMacroHeaderClass();
 });
 
 /* =========================================================
@@ -488,7 +501,8 @@ document.getElementById("app").addEventListener("touchend", (e) => {
           ? (currentIdx + 1) % MACRO_ORDER.length
           : (currentIdx - 1 + MACRO_ORDER.length) % MACRO_ORDER.length;
       const target = MACRO_ORDER[nextIdx];
-      const needsLantern = target === "art-dept" || target === "filmmaker";
+      const needsLantern =
+        (target === "art-dept" || target === "filmmaker") && !skipScenesEnabled;
       navigateToMacroSection(target, { withLanternIntro: needsLantern });
     }
     return;
