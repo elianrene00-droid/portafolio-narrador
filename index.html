@@ -8,6 +8,18 @@
 </head>
 <body>
   <main id="app" class="app-shell" data-scene="inicio">
+<!-- CONTROLES GLOBALES ARRIBA A LA DERECHA (AUDIO + OMITIR ESCENAS) -->
+    <div id="global-utility-controls" class="global-utility-controls">
+      <button id="btn-omitir-escenas" class="utility-btn" type="button" aria-label="Omitir escenas">
+        <img src="https://media.narradoraudiovisual.com/ui/btn-omitir-escenas.png" alt="Omitir escenas" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-flex';" />
+        <span class="utility-fallback">Omitir escenas</span>
+      </button>
+
+      <button id="btn-toggle-audio" class="utility-btn utility-icon-btn" type="button" aria-label="Silenciar o activar audio" aria-pressed="false">
+        <img id="img-audio-icon" src="https://media.narradoraudiovisual.com/ui/btn-audio-on.png" alt="Audio" onerror="this.style.display='none'; this.nextElementSibling.style.display='inline-flex';" />
+        <span id="fallback-audio-icon" class="utility-fallback" data-state="on">🔊</span>
+      </button>
+    </div>
     
     <!-- CAPA 1: ESCENARIO DE VÍDEOS 4:3 A PANTALLA COMPLETA (100dvh) -->
     <div id="stage" class="stage">
