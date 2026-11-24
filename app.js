@@ -112,6 +112,70 @@ function playStageVideo(src, { loop = false, onEnded = null } = {}) {
     sceneVideo.onended = onEnded;
   }
 }
+/* =========================================================
+   AUDIO GLOBAL (BOCINA) + OMITIR ESCENAS CON MEMORIA
+   ========================================================= */
+const SKIP_STORAGE_KEY = "portfolio_skip_scenes_v1";
+const AUDIO_UI_ASSETS = {
+  on: `${MEDIA_BASE}/ui/btn-audio-on.png`,
+  off: `${MEDIA_BASE}/ui/btn-audio-off.png`
+};
+
+const appShell = document.getElementById("app");
+const btnToggleAudio = document.getElementById("btn-toggle-audio");
+const imgAudioIcon = document.getElementById("img-audio-icon");
+const fallbackAudioIcon = document.getElementById("fallback-audio-icon");
+const btnOmitirEscenas = document.getElementById("btn-omitir-escenas");
+
+let isAudioMuted = false;
+let skipScenesEnabled = localStorage.getItem(SKIP_STORAGE_KEY) === "true";
+
+function syncMacroHeaderClass() {
+  const isMacroVisible = !externalTopUi.classList.contains("is-hidden");
+  appShell.classList.toggle("has-macro-header", isMacroVisible);
+}
+
+function applyAudioMuteState(muted) {
+  isAudioMuted = muted;
+
+  // Silencia o permite todos los audios y SFX (y vídeos de escena por si alguno lleva pista)
+  [audioIntro, sfxPuerta, sfxViento, sfxLinterna].forEach((el) => {
+    el.muted = isAudioMuted;
+  });
+  sceneVideo.muted = isAudioMuted;
+
+  btnToggleAudio.setAttribute("aria-pressed", String(isAudioMuted));
+  imgAudioIcon.src = isAudioMuted ? AUDIO_UI_ASSETS.off : AUDIO_UI_ASSETS.on;
+  fallbackAudioIcon.textContent = isAudioMuted ? "🔇" : "🔊";
+}
+
+function syncSkipButtonVisual() {
+  btnOmitirEscenas.classList.toggle("is-skip-active", skipScenesEnabled);
+}
+
+function skipToDirectNavigation(targetSection = "art-dept") {
+  skipScenesEnabled = true;
+  localStorage.setItem(SKIP_STORAGE_KEY, "true");
+  syncSkipButtonVisual();
+
+  // Detiene vídeos/audios de escenas narrativas intermedias
+  stopAllAudio();
+  sceneVideo.onended = null;
+
+  navigateToMacroSection(targetSection, { withLanternIntro: false });
+  syncMacroHeaderClass();
+}
+
+btnToggleAudio.addEventListener("click", () => {
+  applyAudioMuteState(!isAudioMuted);
+});
+
+btnOmitirEscenas.addEventListener("click", () => {
+  skipToDirectNavigation("art-dept");
+});
+
+syncSkipButtonVisual();
+applyAudioMuteState(false);
 
 function stopAllAudio() {
   [audioIntro, sfxPuerta, sfxViento, sfxLinterna].forEach((audio) => {
